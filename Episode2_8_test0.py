@@ -5,8 +5,6 @@ import torch.nn.functional as F
 import torchvision
 import torchvision.transforms as transforms
 
-from Episode2_7_test0 import label
-
 torch.set_printoptions(linewidth=120)
 
 train_set = torchvision.datasets.FashionMNIST(
