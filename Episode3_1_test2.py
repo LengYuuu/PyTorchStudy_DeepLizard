@@ -6,6 +6,9 @@ import torch.optim as optim  # short for optimizer. This can give us access to t
 import torchvision
 import torchvision.transforms as transforms
 
+def get_num_correct(preds, labels):
+    return preds.argmax(dim=1).eq(labels).sum().item()
+
 torch.set_printoptions(linewidth=120)
 
 train_set = torchvision.datasets.FashionMNIST(
@@ -41,25 +44,27 @@ class Network(nn.Module):
 
 network = Network()
 
-data_loader = torch.utils.data.DataLoader(train_set, batch_size=100)
-optimizer = optim.Adam(network.parameters(), lr=0.01)
+# print(network.conv1.weight.requires_grad)  # 应该是 True
 
+data_loader = torch.utils.data.DataLoader(train_set, batch_size=100)    # step 1: Get batch from the training set.
 batch = next(iter(data_loader))
 images, labels = batch
 
-preds = network(images)
-loss = F.cross_entropy(preds, labels)
+preds = network(images) # step 2: Pass batch to network.
+loss = F.cross_entropy(preds, labels)   # step 3: Calculate the loss(difference between the predicted values and the true values).
+print(loss.item())
 
-loss.backward()
-optimizer.step()
+# print(network.conv1.weight.grad)
+loss.backward() # step 4: Calculate the gradient of the loss function w.r.t the network's weights.
+# print(network.conv1.weight.grad)
+# print(network.conv1.weight.grad.shape)
+# print(network.conv1.weight.shape)
 
-print('loos1:', loss.item())
+optimizer = optim.Adam(network.parameters(), lr=0.01)
+print(loss.item())
+print(get_num_correct(preds, labels))
+optimizer.step()    # step 5: Update the weights using the gradients to reduce the loss.
 preds = network(images)
 loss = F.cross_entropy(preds, labels)
-print('loos2:', loss.item())
-preds = network(images)
-loss = F.cross_entropy(preds, labels)
-print('loos3:', loss.item())
-preds = network(images)
-loss = F.cross_entropy(preds, labels)
-print('loos4:', loss.item())
+print(loss.item())
+print(get_num_correct(preds, labels))
