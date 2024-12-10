@@ -44,21 +44,14 @@ class Network(nn.Module):
 
 network = Network()
 
-data_loader = torch.utils.data.DataLoader(train_set, batch_size=100)    # step 1: Get batch from the training set.
-batch = next(iter(data_loader))
+train_loader = torch.utils.data.DataLoader(train_set, batch_size=100)    # step 1: Get batch from the training set.
+optimizer = optim.Adam(network.parameters(), lr=0.01)
+
+batch = next(iter(train_loader))
 images, labels = batch
 
 preds = network(images) # step 2: Pass batch to network.
 loss = F.cross_entropy(preds, labels)   # step 3: Calculate the loss(difference between the predicted values and the true values).
-print(loss.item())
 
 loss.backward() # step 4: Calculate the gradient of the loss function w.r.t the network's weights.
-
-optimizer = optim.Adam(network.parameters(), lr=0.01)
-print(loss.item())
-print(get_num_correct(preds, labels))
 optimizer.step()    # step 5: Update the weights using the gradients to reduce the loss.
-preds = network(images)
-loss = F.cross_entropy(preds, labels)
-print(loss.item())
-print(get_num_correct(preds, labels))
