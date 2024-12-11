@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import \
-    torch.optim as optim  # short for optimizer. This can give us access to the optimizer we will use to update weights.
+import torch.optim as optim  # short for optimizer. This can give us access to the optimizer we will use to update weights.
 
 import torchvision
 import torchvision.transforms as transforms
@@ -102,5 +101,4 @@ for run in RunBuilder.get_runs(params):
             total_loss += loss.item()
             total_correct += get_num_correct(preds, labels)
 
-        print(
-            f"epoch: {epoch}, average loss: {total_loss / len(train_loader):.10f}, average correct: {total_correct / len(train_loader):.10f}")
+        print(f"epoch: {epoch}, average loss: {total_loss / len(train_loader):.10f}, average correct: {total_correct / len(train_loader):.10f}")
