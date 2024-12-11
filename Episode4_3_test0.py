@@ -59,10 +59,10 @@ class Network(nn.Module):
 
 
 params = OrderedDict(
-    lr=[.01, .005],
-    batch_size=[100, 500],
-    shuffle=[True, False],
-    epoch=[5, 10],
+    lr=[.01],
+    batch_size=[100],
+    shuffle=[True],
+    epoch=[5],
     device=["cuda"]
 )
 
