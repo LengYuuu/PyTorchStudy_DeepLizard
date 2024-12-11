@@ -6,8 +6,10 @@ import torch.optim as optim  # short for optimizer. This can give us access to t
 import torchvision
 import torchvision.transforms as transforms
 
+
 def get_num_correct(preds, labels):
     return preds.argmax(dim=1).eq(labels).sum().item()
+
 
 torch.set_printoptions(linewidth=120)
 
@@ -47,16 +49,13 @@ network = Network()
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=100)    # step 1: Get batch from the training set.
 optimizer = optim.Adam(network.parameters(), lr=0.005)
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-network.to(device)
 
-for epoch in range(20):
+for epoch in range(5):
     total_loss = 0
     total_correct = 0
 
     for batch in train_loader:  # step 6: Repeat steps 1-5 until one epoch is completed.
         images, labels = batch
-        images, labels = images.to(device), labels.to(device)
 
         preds = network(images) # step 2: Pass batch to network.
         loss = F.cross_entropy(preds, labels)   # step 3: Calculate the loss(difference between the predicted values and the true values).
@@ -68,5 +67,45 @@ for epoch in range(20):
         total_loss += loss.item()
         total_correct += get_num_correct(preds, labels)
 
-    # print("epoch:", epoch, ", loss:", loss.item(), ", correct:", get_num_correct(preds, labels))
     print(f"epoch: {epoch}, average loss: {total_loss/len(train_loader):.10f}, average correct: {total_correct/len(train_loader):.10f}")
+
+
+@torch.no_grad()
+def get_all_preds(model, loader):
+    all_preds = torch.tensor([])
+
+    for batch in loader:
+        images, labels = batch
+
+        preds = model(images)
+        all_preds = torch.cat((all_preds, preds), dim=0)
+
+    return all_preds
+
+prediction_loader = torch.utils.data.DataLoader(train_set, batch_size=100)
+train_preds = get_all_preds(network, prediction_loader)
+
+print(f"train_set.targets.shape: {train_set.targets.shape}")
+print(f"train_set.targets: {train_set.targets}")
+print(f"train_preds.argmax(dim=1).shape: {train_preds.argmax(dim=1).shape}")
+print(f"train_preds.argmax(dim=1): {train_preds.argmax(dim=1)}")
+
+stacked = torch.stack(
+    (
+        train_set.targets,
+        train_preds.argmax(dim=1)
+    ),
+    dim=1
+)
+
+print(f"stacked.shape: {stacked.shape}")
+print(f"stacked: {stacked}")
+
+cmt = torch.zeros(10, 10, dtype=torch.int32)
+print(cmt)
+
+for p in stacked:
+    tl, pl = p.tolist() # true label & predict label
+    cmt[tl, pl] = cmt[tl, pl] + 1
+
+print(cmt)
