@@ -88,7 +88,6 @@ params = OrderedDict(
     shuffle=[True],
     epoch=[100],
     num_workers=[4],
-    # num_workers=[16],
     device=["cuda"]
 )
 
