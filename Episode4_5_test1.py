@@ -29,14 +29,35 @@ class RunBuilder:
 
 torch.set_printoptions(linewidth=120)
 
-train_set = torchvision.datasets.FashionMNIST(
+train_set_not_normal = torchvision.datasets.FashionMNIST(
     root='./data'
     , train=True
     , download=True
     , transform=transforms.Compose([
         transforms.ToTensor()
+        # normalize
+
     ])
 )
+
+# Easy way: Calculate the mean and standard deviation using the torch method
+loader = torch.utils.data.DataLoader(train_set_not_normal, batch_size=len(train_set_not_normal), num_workers=4)
+data = next(iter(loader))
+
+train_set_normal = torchvision.datasets.FashionMNIST(
+    root='./data'
+    , train=True
+    , download=True
+    , transform=transforms.Compose([
+        transforms.ToTensor(),
+        # normalize
+        transforms.Normalize((data[0].mean()), (data[0].std()))
+    ])
+)
+
+# Easy way: Calculate the mean and standard deviation using the torch method
+loader_normal = torch.utils.data.DataLoader(train_set_normal, batch_size=len(train_set_normal), num_workers=4)
+data_normal = next(iter(loader_normal))
 
 
 class Network(nn.Module):
@@ -61,11 +82,12 @@ class Network(nn.Module):
 
 
 params = OrderedDict(
+    train_set=[train_set_not_normal, train_set_normal],
     lr=[.01],
-    batch_size=[100,200],
+    batch_size=[100],
     shuffle=[True],
-    epoch=[150],
-    num_workers=[0,1,2,4,8,16],
+    epoch=[100],
+    num_workers=[4],
     # num_workers=[16],
     device=["cuda"]
 )
@@ -84,7 +106,10 @@ def main():
         network = Network()
 
         reading_start_time = time.time()
-        train_loader = torch.utils.data.DataLoader(train_set, batch_size=run.batch_size, shuffle=run.shuffle, num_workers=run.num_workers)  # step 1: Get batch from the training set.
+        train_loader = torch.utils.data.DataLoader(train_set=run.train_set,
+                                                   batch_size=run.batch_size,
+                                                   shuffle=run.shuffle,
+                                                   num_workers=run.num_workers)  # step 1: Get batch from the training set.
         optimizer = optim.Adam(network.parameters(), lr=run.lr)
 
         device = run.device
@@ -111,7 +136,8 @@ def main():
                 total_loss += loss.item()
                 total_correct += get_num_correct(preds, labels)
 
-            print(f"epoch: {epoch}, average loss: {total_loss / len(train_loader):.10f}, average correct: {total_correct / len(train_loader):.10f}")
+            print(
+                f"epoch: {epoch}, average loss: {total_loss / len(train_loader):.10f}, average correct: {total_correct / len(train_loader):.10f}")
         train_end_time = time.time()
         print(f"train time: {train_end_time - train_start_time:.10f}")
 
