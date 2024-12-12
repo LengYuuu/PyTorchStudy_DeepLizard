@@ -82,7 +82,6 @@ class Network(nn.Module):
 
 
 params = OrderedDict(
-    train_set=[train_set_not_normal, train_set_normal],
     lr=[.01],
     batch_size=[100],
     shuffle=[True],
@@ -105,7 +104,7 @@ def main():
         network = Network()
 
         reading_start_time = time.time()
-        train_loader = torch.utils.data.DataLoader(train_set=run.train_set,
+        train_loader = torch.utils.data.DataLoader(train_set,
                                                    batch_size=run.batch_size,
                                                    shuffle=run.shuffle,
                                                    num_workers=run.num_workers)  # step 1: Get batch from the training set.
