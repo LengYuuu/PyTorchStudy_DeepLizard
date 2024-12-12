@@ -29,14 +29,35 @@ class RunBuilder:
 
 torch.set_printoptions(linewidth=120)
 
-train_set = torchvision.datasets.FashionMNIST(
+train_set_not_normal = torchvision.datasets.FashionMNIST(
     root='./data'
     , train=True
     , download=True
     , transform=transforms.Compose([
         transforms.ToTensor()
+        # normalize
+
     ])
 )
+
+# Easy way: Calculate the mean and standard deviation using the torch method
+loader = torch.utils.data.DataLoader(train_set_not_normal, batch_size=len(train_set_not_normal), num_workers=4)
+data = next(iter(loader))
+
+train_set_normal = torchvision.datasets.FashionMNIST(
+    root='./data'
+    , train=True
+    , download=True
+    , transform=transforms.Compose([
+        transforms.ToTensor(),
+        # normalize
+        transforms.Normalize((data[0].mean()), (data[0].std()))
+    ])
+)
+
+# Easy way: Calculate the mean and standard deviation using the torch method
+loader_normal = torch.utils.data.DataLoader(train_set_normal, batch_size=len(train_set_normal), num_workers=4)
+data_normal = next(iter(loader_normal))
 
 
 class Network(nn.Module):
@@ -61,6 +82,7 @@ class Network(nn.Module):
 
 
 params = OrderedDict(
+    train_set=[train_set_not_normal, train_set_normal],
     lr=[.01],
     batch_size=[100],
     shuffle=[True],
@@ -83,7 +105,7 @@ def main():
         network = Network()
 
         reading_start_time = time.time()
-        train_loader = torch.utils.data.DataLoader(train_set,
+        train_loader = torch.utils.data.DataLoader(train_set=run.train_set,
                                                    batch_size=run.batch_size,
                                                    shuffle=run.shuffle,
                                                    num_workers=run.num_workers)  # step 1: Get batch from the training set.
@@ -95,7 +117,7 @@ def main():
         # print(f"reading train loader time: {reading_end_time - reading_start_time:.10f}")
 
         train_start_time = time.time()
-        for epoch in range(run.epoch):
+        for epoch in range(run.epoch):  # step 7: Repeat steps 1-6 for as many epochs required to obtain the desired level of accuracy.
             total_loss = 0
             total_correct = 0
 

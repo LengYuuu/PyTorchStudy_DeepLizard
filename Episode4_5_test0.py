@@ -34,12 +34,12 @@ train_set_normal = torchvision.datasets.FashionMNIST(
     , transform=transforms.Compose([
         transforms.ToTensor(),
         # normalize
-        transforms.Normalize((data[0].mean()), (data[0].std()))
+        transforms.Normalize(data[0].mean(), data[0].std())
     ])
 )
 
 # Easy way: Calculate the mean and standard deviation using the torch method
-loader_normal = torch.utils.data.DataLoader(train_set, batch_size=len(train_set), num_workers=4)
+loader_normal = torch.utils.data.DataLoader(train_set_normal, batch_size=len(train_set_normal), num_workers=4)
 data_normal = next(iter(loader_normal))
 print(data_normal[0].mean(), data_normal[0].std())
 
