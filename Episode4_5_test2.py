@@ -82,19 +82,22 @@ class Network(nn.Module):
 
 
 params = OrderedDict(
-    lr=[.01],
-    batch_size=[100],
+    train_set=[train_set_not_normal, train_set_normal],
+    lr=[.01,.005],
+    batch_size=[100,200],
     shuffle=[True],
-    epoch=[100],
+    epoch=[200],
     num_workers=[4],
     device=["cuda"]
 )
 
 
 def main():
-    for run in RunBuilder.get_runs(params):
-        comment = f'-{run}'
-        print(comment)
+    # for run in RunBuilder.get_runs(params):
+    #     comment = f'-{run}'
+    #     print(comment)
+
+    results = []
 
     for run in RunBuilder.get_runs(params):
         comment = f'-{run}'
@@ -104,7 +107,7 @@ def main():
         network = Network()
 
         reading_start_time = time.time()
-        train_loader = torch.utils.data.DataLoader(train_set,
+        train_loader = torch.utils.data.DataLoader(dataset=run.train_set,
                                                    batch_size=run.batch_size,
                                                    shuffle=run.shuffle,
                                                    num_workers=run.num_workers)  # step 1: Get batch from the training set.
@@ -134,10 +137,25 @@ def main():
                 total_loss += loss.item()
                 total_correct += get_num_correct(preds, labels)
 
-            print(
-                f"epoch: {epoch}, average loss: {total_loss / len(train_loader):.10f}, average correct: {total_correct / len(train_loader):.10f}")
+            print(f"epoch: {epoch:3d}, average loss: {total_loss / len(train_loader):.10f}, average correct: {total_correct / len(train_loader):.10f}")
+
+            results.append({
+                'epoch': epoch,
+                'lr': run.lr,
+                'batch_size': run.batch_size,
+                'average_loss': (total_loss / len(train_loader)),
+                'accuracy': (total_correct / len(train_loader) / run.batch_size),
+                'train_set': 'not normal' if run.train_set == train_set_not_normal else 'normal'
+            })
+
         train_end_time = time.time()
         print(f"train time: {train_end_time - train_start_time:.10f}")
+
+    sorted_results = sorted(results, key=lambda x: x['accuracy'], reverse=True)
+
+    print("\nSorted Results (by average correct):")
+    for result in sorted_results:
+        print(f"epoch: {result['epoch']:3d}, learning rate: {result['lr']:.3f}, batch size: {result['batch_size']}, average loss: {result['average_loss']:.10f}, accuracy: {result['accuracy']:.4f}, train_set: {result['train_set']}")
 
 
 if __name__ == '__main__':
