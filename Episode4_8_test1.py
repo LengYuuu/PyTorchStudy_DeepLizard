@@ -68,7 +68,26 @@ network1 = nn.Sequential(
     nn.Linear(in_features=60, out_features=10)
 )
 
+torch.manual_seed(50)
+network2 = nn.Sequential(
+    nn.Conv2d(in_channels=1, out_channels=6, kernel_size=5),
+    nn.ReLU(),
+    nn.MaxPool2d(kernel_size=2, stride=2),
+    nn.BatchNorm2d(6),
+    nn.Conv2d(in_channels=6, out_channels=12, kernel_size=5),
+    nn.ReLU(),
+    nn.MaxPool2d(kernel_size=2, stride=2),
+    nn.Flatten(),
+    nn.Linear(in_features=12 * 4 * 4, out_features=120),
+    nn.ReLU(),
+    nn.BatchNorm1d(120),
+    nn.Linear(in_features=120, out_features=60),
+    nn.ReLU(),
+    nn.Linear(in_features=60, out_features=10)
+)
+
 params = OrderedDict(
+    network=[network1, network2],
     train_set=[train_set_not_normal, train_set_normal],
     lr=[.01, .005],
     batch_size=[100, 200],
@@ -87,7 +106,7 @@ def main():
         print(f"\n")
         print(comment)
 
-        network = network1
+        network = run.network
 
         train_loader = torch.utils.data.DataLoader(dataset=run.train_set,
                                                    batch_size=run.batch_size,
@@ -128,6 +147,7 @@ def main():
                 'average_loss': (total_loss / len(train_loader)),
                 'accuracy': (total_correct / len(train_loader) / run.batch_size),
                 'train_set': 'not normal' if run.train_set == train_set_not_normal else 'normal',
+                'batch_norm': 'not normal' if run.network == network1 else 'normal'
             })
 
         train_end_time = time.time()
@@ -142,7 +162,8 @@ def main():
               f"batch size: {result['batch_size']}, "
               f"average loss: {result['average_loss']:.10f}, "
               f"accuracy: {result['accuracy']:.4f}, "
-              f"train_set: {result['train_set']:10s}")
+              f"train_set: {result['train_set']:10s}, "
+              f"batch_norm: {result['batch_norm']:10s}")
 
 
 if __name__ == '__main__':
