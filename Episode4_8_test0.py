@@ -89,10 +89,10 @@ network2 = nn.Sequential(
 params = OrderedDict(
     network=[network1, network2],
     train_set=[train_set_not_normal, train_set_normal],
-    lr=[.01],
-    batch_size=[200],
+    lr=[.01, .005],
+    batch_size=[100, 200],
     shuffle=[True],
-    epoch=[5],
+    epoch=[200],
     num_workers=[4],
     device=["cuda"]
 )
@@ -106,7 +106,7 @@ def main():
         print(f"\n")
         print(comment)
 
-        network = run.network()
+        network = run.network
 
         train_loader = torch.utils.data.DataLoader(dataset=run.train_set,
                                                    batch_size=run.batch_size,
@@ -155,7 +155,13 @@ def main():
 
     print("\nSorted Results (by average correct):")
     for result in sorted_results:
-        print(f"epoch: {result['epoch']:3d}, learning rate: {result['lr']:.3f}, batch size: {result['batch_size']}, average loss: {result['average_loss']:.10f}, accuracy: {result['accuracy']:.4f}, train_set: {result['train_set']}, batch_norm: {result['batch_norm']}")
+        print(f"epoch: {result['epoch']:3d}, "
+              f"learning rate: {result['lr']:.3f}, "
+              f"batch size: {result['batch_size']}, "
+              f"average loss: {result['average_loss']:.10f}, "
+              f"accuracy: {result['accuracy']:.4f}, "
+              f"train_set: {result['train_set']:10s}, "
+              f"batch_norm: {result['batch_norm']:10s}")
 
 
 if __name__ == '__main__':
